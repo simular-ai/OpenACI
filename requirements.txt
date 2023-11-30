@@ -1,0 +1,5 @@
+requests
+openai
+pyautogui
+pyqt6
+Pillow
