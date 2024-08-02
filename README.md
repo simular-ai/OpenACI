@@ -1,7 +1,7 @@
-# OpenAGI: Open Source AGI in the digital world
+# OpenACI: Open Source Agent Computer Interface
 
 ## Introduction
-This repository contains experimental code showcasing the usage of GPT-4V (a powerful language model) in combination with PyAutoGUI (a library for controlling the mouse and keyboard) to automate tasks. It is important to note that this code is purely experimental and should be used with caution. This project is part of the research conducted in Simular AI, aiming to understand the frontier of existing foundation models in computer control.
+Imagine a world where humans and computers interact seamlessly, effortlessly, and intuitively. Welcome to OpenACI, the revolutionary Open Source Agent Computer Interface that’s redefining the boundaries of human-computer interaction. Inspired by the idea that technology should serve humans, not the other way around, OpenACI is a pioneering platform that enables users to interact with computers in a more natural, conversational way. By harnessing the power of artificial intelligence, machine learning, and natural language processing, OpenACI is poised to transform the way we live, work, and communicate in the digital age.
 
 ## Warning
 Using automation tools can be potentially dangerous if not used responsibly. Please be aware of the following risks and guidelines before attempting to use this code:
