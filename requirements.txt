@@ -3,3 +3,4 @@ openai
 pyautogui
 pyqt6
 Pillow
+pyobjc
