@@ -202,7 +202,7 @@ def ask_gpt(query: str, api_key: str, image_path=TEMP_SCREENSHOT_PATH):
 
     payload = {
         "model":
-        "gpt-4-vision-preview",
+        "gpt-4o",
         "messages": [{
             "role":
             "user",
