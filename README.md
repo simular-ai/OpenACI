@@ -15,10 +15,22 @@ Using automation tools can be potentially dangerous if not used responsibly. Ple
 ## Usage
 To use this experimental code, follow the steps below:
 
-1. Clone the repository to your local machine.
-2. Install the required dependencies using `pip install -r requirements.txt`.
-3. Export OpenAI API key `export OPENAI_API_KEY=<openai-api-key>`
-4. Run the code using `python app.py`.
+1. Clone the repository to your local machine
+```shell
+git clone https://github.com/simular-ai/OpenACI
+```
+2. Install the required dependencies using 
+```shell
+pip install -r requirements.txt
+```
+3. Export OpenAI API key 
+```shell
+export OPENAI_API_KEY=<openai-api-key>
+```
+4. Run the code using
+```shell
+python src/app.py
+```
 5. Write whatever concept you want to click in the terminal.
 
 Please remember to review and modify the code according to your specific use case and requirements. It is highly recommended to thoroughly test the code in a controlled environment before using it in any production or critical systems.
