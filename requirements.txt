@@ -4,3 +4,4 @@ pyautogui
 pyqt6
 Pillow
 pyobjc
+backoff

@@ -13,10 +13,8 @@ from ApplicationServices import (
     AXUIElementCopyAttributeValue,
 )
 
-
-def frontmostApplication():
-    return NSWorkspace.sharedWorkspace().frontmostApplication()
-
+import logging
+logger = logging.getLogger("openaci.agent")
 
 class UIElement(object):
 
@@ -47,7 +45,7 @@ if __name__ == "__main__":
     # Examples.
     elem = UIElement.systemWideElement()
     print(elem)
+    print(elem.attribute('AXFocusedApplication'))
     print(elem.getAttributeNames())
     elem = (UIElement(elem.attribute('AXFocusedApplication')))
     print(elem.getAttributeNames())
-print(elem.children())
