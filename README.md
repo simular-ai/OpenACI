@@ -1,5 +1,7 @@
 # OpenACI: Open Source Agent Computer Interface
 
+tl;dr: OpenACI is an interfact that allows computers to control itself and perform tasks autonomously according to natural langauge instructions.
+
 ## Introduction
 Imagine a world where humans and computers interact seamlessly, effortlessly, and intuitively. Welcome to OpenACI, the revolutionary Open Source Agent Computer Interface that’s redefining the boundaries of human-computer interaction. Inspired by the idea that technology should serve humans, not the other way around, OpenACI is a pioneering platform that enables users to interact with computers in a more natural, conversational way. By harnessing the power of artificial intelligence, machine learning, and natural language processing, OpenACI is poised to transform the way we live, work, and communicate in the digital age.
 
