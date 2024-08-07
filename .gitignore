@@ -166,3 +166,5 @@ cython_debug/
 # screenshot
 temp.png
 icons/*
+
+.DS_Store
