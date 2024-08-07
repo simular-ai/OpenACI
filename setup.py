@@ -17,7 +17,6 @@ setup(
         'Pillow==9.2.0',
         'pyobjc==8.5',
         'backoff==2.1.2',
-        'xlm==0.3.1',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
