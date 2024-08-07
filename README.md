@@ -17,25 +17,28 @@ Using automation tools can be potentially dangerous if not used responsibly. Ple
 ## Usage
 To use this experimental code, follow the steps below:
 
-1. Clone the repository to your local machine
+1. Clone the repository to your local machine and navigate into the cloned repo: 
 ```shell
 git clone https://github.com/simular-ai/OpenACI
+cd OpenACI
 ```
-2. Install the required dependencies using 
+2. Install the required dependencies: 
 ```shell
 pip install -r requirements.txt
 ```
-3. Export OpenAI API key 
+3. Export your OpenAI API key:
 ```shell
 export OPENAI_API_KEY=<openai-api-key>
 ```
-4. Install the openaci package using `pip install -e .` for an editable install 
+4. Install the openaci package in editable mode:
+```shell
+pip install -e .
+``` 
 5. Run the code using
 ```shell
 python src/cli_app.py
 ```
-6. Write an instruction for the agent as query.
-7. You can interrupt the agent at any time with a keyboard interrupt (Ctrl+C) in the terminal used to run it.
+6. Write an instruction for the agent as query. You can interrupt the agent at any time with a keyboard interrupt (Ctrl+C) in the terminal to run it.
 
 Please remember to review and modify the code according to your specific use case and requirements. It is highly recommended to thoroughly test the code in a controlled environment before using it in any production or critical systems.
 
