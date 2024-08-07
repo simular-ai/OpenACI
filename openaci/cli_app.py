@@ -25,8 +25,10 @@ import pyautogui
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-
 datetime_str: str = datetime.datetime.now().strftime("%Y%m%d@%H%M%S")
+
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
 
 file_handler = logging.FileHandler(
     os.path.join("logs", "normal-{:}.log".format(datetime_str)), encoding="utf-8"

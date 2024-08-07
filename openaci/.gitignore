@@ -1,3 +1,4 @@
 *.png
-logs/
+logs/*
 .DS_Store
+
