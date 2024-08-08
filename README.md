@@ -36,7 +36,7 @@ pip install -e .
 ``` 
 5. Run the code using
 ```shell
-python src/cli_app.py
+python openaci/cli_app.py
 ```
 6. Write an instruction for the agent as query. You can interrupt the agent at any time with a keyboard interrupt (Ctrl+C) in the terminal to run it.
 
