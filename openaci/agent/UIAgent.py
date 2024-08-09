@@ -165,6 +165,10 @@ class IDBasedGroundingUIAgent:
             self.planning_agent.add_message(
                 f"Accessibility Tree: {agent.linearized_accessibility_tree}")
 
+        # Incorporate the feedback from the previous action at the execution level
+        if agent.execution_feedback:
+            self.planning_agent.add_message('\n The execution level feedback of the previous action is: ' + agent.execution_feedback)
+
         plan = self.call_llm(self.planning_agent)
         self.planner_history.append(plan)
         logger.info("PLAN: %s", plan)
