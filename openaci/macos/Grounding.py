@@ -1,7 +1,9 @@
 from typing import Dict, List, Tuple
+import os 
+import subprocess
 import logging
 logger = logging.getLogger("openaci.agent")
-
+import difflib
 from Foundation import *
 from AppKit import *
 
@@ -47,6 +49,14 @@ class UIElement(object):
     def __repr__(self):
         return "UIElement%s" % (self.ref)
 
+def list_apps_in_directories(directories):
+    apps = []
+    for directory in directories:
+        if os.path.exists(directory):
+            directory_apps = [app for app in os.listdir(directory) if app.endswith(".app")]
+            apps.extend(directory_apps)
+    return apps
+
 class GroundingAgent:
     def __init__(self, obs, top_app=None):
         self.input_tree = obs['accessibility_tree']
@@ -56,6 +66,14 @@ class GroundingAgent:
 
         self.index_out_of_range_flag = False
         self.top_active_app = None
+        self.execution_feedback = None
+
+        # Directories to search for applications in MacOS
+        directories_to_search = [
+            "/System/Applications",
+            "/Applications"
+        ]
+        self.all_apps = list_apps_in_directories(directories_to_search)
 
         self.nodes, self.linearized_accessibility_tree = self.linearize_and_annotate_tree(
             self.input_tree, self.screenshot)
@@ -182,6 +200,22 @@ class GroundingAgent:
             self.index_out_of_range_flag = True 
         return selected_element
 
+    # TODO: this is still MACOS specific code
+    def open_app(self, app_name):
+        '''Open an application
+            Args:
+                app_name:str, the name of the application to open from the following list of available applications in the system: AVAILABLE_APPS
+        '''
+        # fuzzy match the app name
+        # closest_matches = difflib.get_close_matches(app_name + ".app", self.all_apps, n=1, cutoff=0.6) 
+        if app_name in self.all_apps:
+            subprocess.run(["open", "-a", app_name], check=True)
+            print(f"{app_name} has been opened successfully.")
+            return """NEXT"""
+        else:
+            self.execution_feedback = "There is no application " + app_name + " installed on the system. Please replan and avoid this action."
+            print(self.execution_feedback)
+            return """WAIT"""
 
     def click(self, element_id, num_clicks=1, click_type="left"):
         '''Click on the element

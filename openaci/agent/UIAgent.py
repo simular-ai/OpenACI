@@ -1,9 +1,9 @@
 import time
 import xml.etree.ElementTree as ET
 
-from openaci.agent.ProceduralMemory import PROCEDURAL_MEMORY
-from openaci.macos.Grounding import GroundingAgent
-from openaci.agent.MultimodalAgent import LMMAgent
+from agent.ProceduralMemory import PROCEDURAL_MEMORY
+from macos.Grounding import GroundingAgent
+from agent.MultimodalAgent import LMMAgent
 
 import os 
 from typing import Dict, List
@@ -137,7 +137,9 @@ class IDBasedGroundingUIAgent:
         if self.turn_count == 0:
             self.planning_agent.add_system_prompt(
             self.planning_module_system_prompt
-            .replace("TASK_DESCRIPTION", instruction))
+            .replace("TASK_DESCRIPTION", instruction)
+            .replace("AVAILABLE_APPS", str(agent.all_apps))
+            )
         
         # Clear older messages 
         self.flush_messages()
@@ -158,10 +160,14 @@ class IDBasedGroundingUIAgent:
         # Plan Generation
         if reflection:
             self.planning_agent.add_message('\nYou may use the reflection on the previous trajectory: ' + reflection +
-                                            f"\nAccessibility Tree: {agent.linearized_accessibility_tree}")
+                                            f"\nAccessibility Tree: {agent.linearized_accessibility_tree}.")
         else:
             self.planning_agent.add_message(
                 f"Accessibility Tree: {agent.linearized_accessibility_tree}")
+
+        # Incorporate the feedback from the previous action at the execution level
+        if agent.execution_feedback:
+            self.planning_agent.add_message('\n The execution level feedback of the previous action is: ' + agent.execution_feedback)
 
         plan = self.call_llm(self.planning_agent)
         self.planner_history.append(plan)

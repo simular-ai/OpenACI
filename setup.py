@@ -10,17 +10,17 @@ setup(
     packages=find_packages(),  # Automatically find packages in the current directory
     include_package_data=True,
     install_requires=[
-        'xlm',
-        'requests',
-        'openai',
-        'pyautogui',
-        'pyqt6',
-        'Pillow',
-        'pyobjc'
+        'requests==2.28.1',
+        'openai==0.27.0',
+        'pyautogui==0.9.53',
+        'pyqt6==6.3.1',
+        'Pillow==9.2.0',
+        'pyobjc==8.5',
+        'backoff==2.1.2',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
-        'License :: Apache License 2.0',
+        'License :: OSI Approved :: Apache Software License',
         'Operating System :: MacOS',
     ],
     python_requires='>=3.9',  # Specify the minimum Python version required
