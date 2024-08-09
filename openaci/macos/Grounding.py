@@ -3,7 +3,7 @@ import os
 import subprocess
 import logging
 logger = logging.getLogger("openaci.agent")
-
+import difflib
 from Foundation import *
 from AppKit import *
 
@@ -58,6 +58,9 @@ class GroundingAgent:
 
         self.index_out_of_range_flag = False
         self.top_active_app = None
+
+        apps_directory = "/Applications" # Default directory for applications in MacOS
+        self.all_apps = [app for app in os.listdir(apps_directory) if app.endswith(".app")]
 
         self.nodes, self.linearized_accessibility_tree = self.linearize_and_annotate_tree(
             self.input_tree, self.screenshot)
@@ -187,21 +190,16 @@ class GroundingAgent:
     # TODO: this is still MACOS specific code
     def open_app(self, app_name):
         '''Open an application
-        Args:
-            app_name: the name of the application to open
+            Args:
+                app_name:str, the name of the application to open from the following list of available applications in the system: AVAILABLE_APPS
         '''
-        apps_directory = "/Applications" # Default directory for applications in MacOS
-        try:
-            apps = [app for app in os.listdir(apps_directory) if app.endswith(".app")]
-            if app_name in apps:
-                subprocess.run(["open", f"/Applications/{app_name}.app"], check=True)
-                print(f"{app_name} has been opened successfully.")
-            else:
-                return f"{app_name} is not installed on this system."
-        except subprocess.CalledProcessError as e:
-            print(f"Failed to open {app_name}: {{e}}")
-        
-        return """NEXT"""
+        # fuzzy match the app name
+        closest_matches = difflib.get_close_matches(app_name + ".app", self.all_apps, n=1, cutoff=0.6) 
+        if closest_matches:
+            best_match = closest_matches[0]
+            return """import subprocess; subprocess.run(["open", "/Applications/APP_NAME"])""".replace("APP_NAME", best_match)
+        else:
+            return """WAIT"""
 
     def click(self, element_id, num_clicks=1, click_type="left"):
         '''Click on the element

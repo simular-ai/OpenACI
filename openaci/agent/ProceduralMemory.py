@@ -9,7 +9,7 @@ class PROCEDURAL_MEMORY:
         def open_app(self, app_name):
             '''Open an application
             Args:
-                app_name:str, the name of the application to open
+                app_name:str, the name of the application to open from the following list of available applications in the system: AVAILABLE_APPS
             '''
 
         def click(self, element_id):
