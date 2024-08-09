@@ -2,7 +2,7 @@
 # Date: 2021-09-15
 # License: Apache 2.0
 
-from openaci.agent.MultimodalEngine import LMMEngineOpenAI, LMMEngineAzureOpenAI
+from agent.MultimodalEngine import LMMEngineOpenAI, LMMEngineAzureOpenAI
 import base64
 import re 
 

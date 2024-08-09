@@ -1,5 +1,5 @@
-from openaci.agent.UIAgent import IDBasedGroundingUIAgent
-from openaci.macos.UIElement import UIElement
+from agent.UIAgent import IDBasedGroundingUIAgent
+from macos.UIElement import UIElement
 import logging
 
 from Foundation import *
@@ -108,6 +108,9 @@ def run(instruction: str):
 
         if 'done' in code[0].lower() or 'fail' in code[0].lower():
             break 
+        
+        if 'next' in code[0].lower():
+            continue
 
         if 'wait' in code[0].lower():
             import time 

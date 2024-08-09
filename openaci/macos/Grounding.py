@@ -1,4 +1,6 @@
 from typing import Dict, List, Tuple
+import os 
+import subprocess
 import logging
 logger = logging.getLogger("openaci.agent")
 
@@ -182,6 +184,24 @@ class GroundingAgent:
             self.index_out_of_range_flag = True 
         return selected_element
 
+    # TODO: this is still MACOS specific code
+    def open_app(self, app_name):
+        '''Open an application
+        Args:
+            app_name: the name of the application to open
+        '''
+        apps_directory = "/Applications" # Default directory for applications in MacOS
+        try:
+            apps = [app for app in os.listdir(apps_directory) if app.endswith(".app")]
+            if app_name in apps:
+                subprocess.run(["open", f"/Applications/{app_name}.app"], check=True)
+                print(f"{app_name} has been opened successfully.")
+            else:
+                return f"{app_name} is not installed on this system."
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to open {app_name}: {{e}}")
+        
+        return """NEXT"""
 
     def click(self, element_id, num_clicks=1, click_type="left"):
         '''Click on the element

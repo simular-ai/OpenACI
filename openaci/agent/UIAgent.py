@@ -1,9 +1,9 @@
 import time
 import xml.etree.ElementTree as ET
 
-from openaci.agent.ProceduralMemory import PROCEDURAL_MEMORY
-from openaci.macos.Grounding import GroundingAgent
-from openaci.agent.MultimodalAgent import LMMAgent
+from agent.ProceduralMemory import PROCEDURAL_MEMORY
+from macos.Grounding import GroundingAgent
+from agent.MultimodalAgent import LMMAgent
 
 import os 
 from typing import Dict, List

@@ -6,6 +6,12 @@ class PROCEDURAL_MEMORY:
     2. The history of your previous interactions with the UI.
     3. Access to the following class and methods to interact with the UI:
     class Agent:
+        def open_app(self, app_name):
+            '''Open an application
+            Args:
+                app_name:str, the name of the application to open
+            '''
+
         def click(self, element_id):
             '''Click on the element
             Args:
