@@ -77,12 +77,17 @@ class UIElement(object):
     @property
     def text(self):
         try:
-            action: ATAction = self.node.queryAction()
+            text_obj: ATText = self.node.queryText()
+        except NotImplementedError:
+            return ''
+        else:
             text: str = text_obj.getText(0, text_obj.characterCount)
             text = text.replace("\ufffc", "").replace("\ufffd", "")
             return text
-        except NotImplementedError:
-            return ''
+    
+    @property
+    def role(self):
+        return self.node.getRoleName()
 
 
     def children(self):

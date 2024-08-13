@@ -6,6 +6,8 @@ import pyautogui
 import platform 
 import logging
 import sys
+import time 
+
 if platform.system() == 'Darwin':
     from macos.UIElement import UIElement
     from Foundation import *
@@ -111,6 +113,7 @@ def run(instruction: str):
         print(code)
 
         if 'done' in code[0].lower() or 'fail' in code[0].lower():
+            os.system('xmessage -center -buttons OK:0 -default OK -title "UI Agent Notification" -nearmouse "Task Completed"')
             break 
         
         if 'next' in code[0].lower():
@@ -123,6 +126,8 @@ def run(instruction: str):
 
         else:
             exec(code[0])
+            import time 
+            time.sleep(1.)
 
 def main():
     # Examples.

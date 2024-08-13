@@ -18,12 +18,14 @@ platform_name: str = platform.system()
 import logging
 logger = logging.getLogger("openaci.agent")
 
+from ubuntu.UIElement import UIElement
+
 
 def list_apps_in_directories(directories):
     apps = []
     for directory in directories:
         if os.path.exists(directory):
-            directory_apps = [app for app in os.listdir(directory) if app.endswith(".app")]
+            directory_apps = [app.replace('.desktop', '') for app in os.listdir(directory) if app.endswith(".desktop")]
             apps.extend(directory_apps)
     return apps
 
@@ -40,7 +42,7 @@ class GroundingAgent:
 
         # Directories to search for applications in MacOS
         directories_to_search = [
-            "/usr/bin",
+            "/usr/share/applications/",
         ]
         self.all_apps = list_apps_in_directories(directories_to_search)
 
@@ -114,7 +116,7 @@ class GroundingAgent:
             "id\trole\tname\ttext"]
 
         for idx, node in enumerate(preserved_nodes):
-            name = node.attribute.get('name', '')
+            name = node.attributes.get('name', '')
             text = node.text
             role = node.role
             linearized_accessibility_tree.append(
@@ -150,9 +152,8 @@ class GroundingAgent:
         # fuzzy match the app name
         # closest_matches = difflib.get_close_matches(app_name + ".app", self.all_apps, n=1, cutoff=0.6) 
         if app_name in self.all_apps:
-            subprocess.run(["open", "-a", app_name], check=True)
             print(f"{app_name} has been opened successfully.")
-            return """NEXT"""
+            return f"""import subprocess; subprocess.Popen(["{app_name}"])"""
         else:
             self.execution_feedback = "There is no application " + app_name + " installed on the system. Please replan and avoid this action."
             print(self.execution_feedback)
@@ -167,14 +168,14 @@ class GroundingAgent:
         '''
         node = self.find_element(element_id)
         coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getPosition()
+        sizes: Tuple[int, int] = node.component.getSize()
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
         y = coordinates[1] + sizes[1] // 2
 
         # Return pyautoguicode to click on the element
-        return f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button="{click_type}")"""
+        return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}, clicks={num_clicks}, button="{click_type}")"""
 
     def double_click(self, element_id):
         '''Double click on the element
@@ -183,14 +184,14 @@ class GroundingAgent:
         '''
         node = self.find_element(element_id)
         coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getPosition()
+        sizes: Tuple[int, int] = node.component.getSize()
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
         y = coordinates[1] + sizes[1] // 2
 
         # Return pyautoguicode to click on the element
-        return f"""import pyautogui; pyautogui.click({x}, {y}, clicks=2, button="left")"""
+        return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}, clicks=2, button="left")"""
 
     def right_click(self, element_id):
         '''Right click on the element
@@ -199,14 +200,14 @@ class GroundingAgent:
         '''
         node = self.find_element(element_id)
         coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getPosition()
+        sizes: Tuple[int, int] = node.component.getSize()
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
         y = coordinates[1] + sizes[1] // 2
 
         # Return pyautoguicode to click on the element
-        return f"""import pyautogui; pyautogui.click({x}, {y}, button="right")"""
+        return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}, button="right")"""
 
     def click_at_coordinates(self, x, y, num_clicks, click_type="left"):
         '''Click on the element at the specified coordinates. Only use if the required element does not exist in the accessibility tree.
@@ -244,7 +245,7 @@ class GroundingAgent:
             node = self.find_element(0)
         # print(node.attrib)
         coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getPosition()
+        sizes: Tuple[int, int] = node.component.getSize()
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
@@ -252,9 +253,9 @@ class GroundingAgent:
 
         # Return pyautoguicode to type into the element
         if append:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.typewrite("{text}")"""
+            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.typewrite("{text}")"""
         else:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("backspace"); pyautogui.typewrite("{text}")"""
+            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("backspace"); pyautogui.typewrite("{text}")"""
 
     def type_and_enter(self, element_id, text, append: bool = True):
         '''Type text into the element
@@ -268,7 +269,7 @@ class GroundingAgent:
             node = self.find_element(0)
         # print(node.attrib)
         coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getPosition()
+        sizes: Tuple[int, int] = node.component.getSize()
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
@@ -276,9 +277,9 @@ class GroundingAgent:
 
         # Return pyautoguicode to type into the element
         if append:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
+            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
         else:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
+            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
 
     def drag_and_drop(self, element1_id, element2_id):
         '''Drag element1 and drop it on element2
@@ -289,10 +290,10 @@ class GroundingAgent:
         node1 = self.find_element(element1_id)
         node2 = self.find_element(element2_id)
         coordinates1: Tuple[int, int] = node1.component.getPosition(pyatspi.XY_SCREEN)
-        sizes1: Tuple[int, int] = node1.component.getPosition()
+        sizes1: Tuple[int, int] = node1.component.getSize()
 
         coordinates2: Tuple[int, int] = node2.component.getPosition(pyatspi.XY_SCREEN)
-        sizes2: Tuple[int, int] = node2.component.getPosition()
+        sizes2: Tuple[int, int] = node2.component.getSize()
         
         # Calculate the center of the element
         x1 = coordinates1[0] + sizes1[0] // 2

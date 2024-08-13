@@ -1,6 +1,13 @@
+import platform 
+
+if platform.system() == 'Darwin':
+    current_os = 'MacOS'
+elif platform.system() == 'Linux':
+    current_os = 'Ubuntu'
+
 class PROCEDURAL_MEMORY:
-    PLANNING_AGENT_PROMPT = """
-    You are an expert in graphical user interfaces and Python code. Your task is to complete the following: TASK_DESCRIPTION. You are working in MacOS.
+    PLANNING_AGENT_PROMPT = f"""
+    You are an expert in graphical user interfaces and Python code. Your task is to complete the following: TASK_DESCRIPTION. You are working in {current_os}.
     You are provided with:
     1. A simplified accessibility tree of the UI at the current time step.
     2. The history of your previous interactions with the UI.
