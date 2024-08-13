@@ -1,7 +1,7 @@
 requests==2.28.1
 openai==0.27.0
 pyautogui==0.9.53
-pyqt6==6.3.1
-Pillow==9.2.0
-pyobjc==8.5
+Pillow==9.1.0
 backoff==2.1.2
+pyqt6==6.3.1; sys_platform == 'darwin'
+pyobjc==8.5; sys_platform == 'darwin' 

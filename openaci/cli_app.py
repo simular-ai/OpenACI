@@ -1,26 +1,30 @@
-from agent.UIAgent import IDBasedGroundingUIAgent
-from macos.UIElement import UIElement
-import logging
-
-from Foundation import *
-from AppKit import *
-import sys 
-from ApplicationServices import (
-    AXIsProcessTrusted,
-    AXUIElementCreateApplication,
-    AXUIElementCreateSystemWide,
-    CFEqual,
-)
-
-from ApplicationServices import (
-    AXUIElementCopyAttributeNames,
-    AXUIElementCopyAttributeValue,
-)
 import os 
 import datetime 
 import base64
 import io
 import pyautogui
+import platform 
+import logging
+import sys
+if platform.system() == 'Darwin':
+    from macos.UIElement import UIElement
+    from Foundation import *
+    from AppKit import *
+    from ApplicationServices import (
+        AXIsProcessTrusted,
+        AXUIElementCreateApplication,
+        AXUIElementCreateSystemWide,
+        CFEqual,
+    )
+
+    from ApplicationServices import (
+        AXUIElementCopyAttributeNames,
+        AXUIElementCopyAttributeValue,
+    )
+elif platform.system() == 'Linux':
+    from ubuntu.UIElement import UIElement
+
+from agent.UIAgent import IDBasedGroundingUIAgent
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -62,7 +66,7 @@ logger.addHandler(debug_handler)
 logger.addHandler(stdout_handler)
 logger.addHandler(sdebug_handler)
 
-
+platform_os = platform.system() 
 
 
 def run(instruction: str):
@@ -78,7 +82,7 @@ def run(instruction: str):
         top_p=0.9,
         temperature=0.5,
         action_space="pyautogui",
-        observation_type="AXTree",
+        observation_type="A11y-tree",
         max_trajectory_length=3,
         a11y_tree_max_tokens=10000,
         enable_reflection=True,
@@ -87,7 +91,7 @@ def run(instruction: str):
     obs = {}
     for _ in range(15):
         obs['accessibility_tree'] = UIElement.systemWideElement()
-
+ 
         # Get screen shot using pyautogui.
         # Take a screenshot
         screenshot = pyautogui.screenshot()
