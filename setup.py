@@ -12,8 +12,8 @@ setup(
     install_requires=[
         'requests==2.28.1',
         'openai==1.40.6',
-        'pyautogui==0.9.53',
-        'Pillow==9.2.0',
+        'pyautogui==0.9.54',
+        'Pillow==10.1.0',
         'backoff==2.1.2',
     ],
     classifiers=[
