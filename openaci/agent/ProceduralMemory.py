@@ -36,6 +36,23 @@ class PROCEDURAL_MEMORY:
             Args:
                 element_id:int, ID of the element to right click on
             '''    
+        
+        def copy_selected_text(self): 
+        '''Copy the selected text
+        '''
+
+        def paste_from_clipboard(self, element_id):
+            '''Paste text from the clipboard into the element using pyautogui
+            Args:
+                element_id:int, ID of the element to paste into
+            '''
+
+        def take_note(self, text):
+            '''Take a note of the text
+            Args:
+                text: note for yourself or summarization purposes
+            '''
+        
         def type(self, element_id, text, append=True):
             '''Type text into the element
             Args:

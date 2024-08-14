@@ -113,7 +113,10 @@ def run(instruction: str):
         print(code)
 
         if 'done' in code[0].lower() or 'fail' in code[0].lower():
-            os.system('xmessage -center -buttons OK:0 -default OK -title "UI Agent Notification" -nearmouse "Task Completed"')
+            if platform.system == 'Darwin':
+                os.system(f'osascript -e \'display dialog "Task Completed" with title "OpenACI Agent" buttons "OK" default button "OK"\'')
+            elif platform.system == 'Linux':
+                os.system(f'zenity --info --title="OpenACI Agent" --text="Task Completed" --width=200 --height=100')
             break 
         
         if 'next' in code[0].lower():

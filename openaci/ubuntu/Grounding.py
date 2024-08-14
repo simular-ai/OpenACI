@@ -255,7 +255,7 @@ class GroundingAgent:
         if append:
             return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.typewrite("{text}")"""
         else:
-            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("backspace"); pyautogui.typewrite("{text}")"""
+            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite("{text}")"""
 
     def type_and_enter(self, element_id, text, append: bool = True):
         '''Type text into the element
