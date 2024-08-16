@@ -1,6 +1,13 @@
+import platform 
+
+if platform.system() == 'Darwin':
+    current_os = 'MacOS'
+elif platform.system() == 'Linux':
+    current_os = 'Ubuntu'
+
 class PROCEDURAL_MEMORY:
-    PLANNING_AGENT_PROMPT = """
-    You are an expert in graphical user interfaces and Python code. Your task is to complete the following: TASK_DESCRIPTION. You are working in MacOS.
+    PLANNING_AGENT_PROMPT = f"""
+    You are an expert in graphical user interfaces and Python code. Your task is to complete the following: TASK_DESCRIPTION. You are working in {current_os}.
     You are provided with:
     1. A simplified accessibility tree of the UI at the current time step.
     2. The history of your previous interactions with the UI.
@@ -29,6 +36,23 @@ class PROCEDURAL_MEMORY:
             Args:
                 element_id:int, ID of the element to right click on
             '''    
+        
+        def copy_selected_text(self): 
+        '''Copy the selected text
+        '''
+
+        def paste_from_clipboard(self, element_id):
+            '''Paste text from the clipboard into the element using pyautogui
+            Args:
+                element_id:int, ID of the element to paste into
+            '''
+
+        def take_note(self, text):
+            '''Take a note of the text
+            Args:
+                text: note for yourself or summarization purposes
+            '''
+        
         def type(self, element_id, text, append=True):
             '''Type text into the element
             Args:

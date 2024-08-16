@@ -11,11 +11,9 @@ setup(
     include_package_data=True,
     install_requires=[
         'requests==2.28.1',
-        'openai==0.27.0',
-        'pyautogui==0.9.53',
-        'pyqt6==6.3.1',
-        'Pillow==9.2.0',
-        'pyobjc==8.5',
+        'openai==1.40.6',
+        'pyautogui==0.9.54',
+        'Pillow==10.1.0',
         'backoff==2.1.2',
     ],
     classifiers=[

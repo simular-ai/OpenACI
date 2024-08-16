@@ -2,7 +2,15 @@ import time
 import xml.etree.ElementTree as ET
 
 from agent.ProceduralMemory import PROCEDURAL_MEMORY
-from macos.Grounding import GroundingAgent
+import platform 
+
+if platform.system() == 'Darwin':
+    from macos.Grounding import GroundingAgent
+elif platform.system() == 'Linux':
+    from ubuntu.Grounding import GroundingAgent
+else:
+    raise NotImplementedError
+
 from agent.MultimodalAgent import LMMAgent
 
 import os 

@@ -168,3 +168,4 @@ temp.png
 icons/*
 
 .DS_Store
+agentenv/
