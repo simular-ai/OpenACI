@@ -49,25 +49,6 @@ class GroundingAgent:
         self.nodes, self.linearized_accessibility_tree = self.linearize_and_annotate_tree(
             self.input_tree, self.screenshot)
 
-    def get_coordinates(self, position):
-        x = float(x_part.split(':')[1])
-        y = float(y_part.split(':')[1])
-        return x, y
-
-    def get_sizes(self, size):
-        size_parts = size.__repr__().split().copy()
-
-        # Find the parts containing 'Width:' and 'Height:'
-        for part in size_parts:
-            if part.startswith('w:'):
-                width_part = part
-            if part.startswith('h:'):
-                height_part = part
-
-        # Extract the numerical values after 'Width:' and 'Height:'
-        w = float(width_part.split(':')[1])
-        h = float(height_part.split(':')[1])
-        return w, h
 
     def preserve_nodes(self, tree, exclude_roles=None):
         if exclude_roles is None:
