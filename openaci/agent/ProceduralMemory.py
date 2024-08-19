@@ -76,6 +76,9 @@ class PROCEDURAL_MEMORY:
     (Previous action verification)
     Carefully analyze based on the accessibility tree if the previous action was successful. If the previous action was not successful, provide a reason for the failure. 
 
+    (Active Summary)
+    Maintain a running summary of everything that has happened so far. After each step add a short description for what happened in the previous step in this part. Do not overwrite existing summary, keep it the same.
+
     (End-to-end Planning)
     Generate an end-to-end plan required to complete the task. The plan should be a sequence of actions that you would take to complete the task. Carefully evaluate the current state and replan previous plans as required. Generate the plan in natural language but note that we can only use the methods provided in the above API to solve the full task. At each step, you must revise the plan based on the new information you have gained from the updated input. Do not preserve the old plan. Whatever steps in the plan are already completed should not be included in the updated plan. 
 

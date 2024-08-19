@@ -6,11 +6,15 @@ import platform
 
 if platform.system() == 'Darwin':
     from macos.Grounding import GroundingAgent
+    from macos.UIElement import UIElement
 elif platform.system() == 'Linux':
     from ubuntu.Grounding import GroundingAgent
+    from ubuntu.UIElement import UIElement
 else:
     raise NotImplementedError
 
+# from browser.DOMElement import DOMElement
+# from browser.Grounding import BrowserGroundingAgent
 from agent.MultimodalAgent import LMMAgent
 
 import os 
@@ -18,6 +22,9 @@ from typing import Dict, List
 import logging
 import re 
 from typing import Dict, List
+import pyautogui
+import io
+
 
 logger = logging.getLogger("openaci.agent")
 
@@ -138,9 +145,8 @@ class IDBasedGroundingUIAgent:
         Predict the next action(s) based on the current observation.
         """
         # Provide the top_app to the Grounding Agent to remove all other applications from the tree. At t=0, top_app is None
-        agent = GroundingAgent(
-            obs
-        )
+        agent = GroundingAgent(obs)
+
 
         if self.turn_count == 0:
             self.planning_agent.add_system_prompt(
@@ -165,18 +171,22 @@ class IDBasedGroundingUIAgent:
 
             logger.info("REFLECTION: %s", reflection)
             print("REFLECTION: ", reflection)
+        
+        planning_agent_message = ""
 
-        # Plan Generation
+        # if a reflection is generated, add it to the planning agent message
         if reflection:
-            self.planning_agent.add_message('\nYou may use the reflection on the previous trajectory: ' + reflection +
-                                            f"\nAccessibility Tree: {agent.linearized_accessibility_tree}.")
-        else:
-            self.planning_agent.add_message(
-                f"Accessibility Tree: {agent.linearized_accessibility_tree}")
-
-        # Incorporate the feedback from the previous action at the execution level
+            planning_agent_message = "\nYou may use the reflection on the previous trajectory: " + reflection
+        
+        # if the agent has execution feedback, add it to the planning agent message
         if agent.execution_feedback:
-            self.planning_agent.add_message('\n The execution level feedback of the previous action is: ' + agent.execution_feedback)
+            planning_agent_message += '\n The execution level feedback of the previous action is: ' + agent.execution_feedback
+
+        # Add the accessibility tree to the planning agent message
+        planning_agent_message += f"\nAccessibility Tree: {agent.linearized_accessibility_tree}."
+        
+        # add the planning agent message with the screenshot to the planning_agent's messages
+        self.planning_agent.add_message(planning_agent_message, image_content=obs['screenshot'])  
 
         plan = self.call_llm(self.planning_agent)
         self.planner_history.append(plan)
@@ -203,3 +213,43 @@ class IDBasedGroundingUIAgent:
         self.turn_count+=1
 
         return info, [exec_code]
+    
+    def run(self, instruction: str):
+        obs = {}
+        for _ in range(15):
+            obs['accessibility_tree'] = UIElement.systemWideElement()
+                
+            # Get screen shot using pyautogui.
+            # Take a screenshot
+            screenshot = pyautogui.screenshot()
+
+            # Save the screenshot to a BytesIO object
+            buffered = io.BytesIO()
+            screenshot.save(buffered, format="PNG")
+
+            # Get the byte value of the screenshot
+            screenshot_bytes = buffered.getvalue()
+            # Convert to base64 string.
+            obs['screenshot'] = screenshot_bytes 
+
+            info, code = self.predict(instruction=instruction, obs=obs)
+
+            if 'done' in code[0].lower() or 'fail' in code[0].lower():
+                if platform.system() == 'Darwin':
+                    os.system(f'osascript -e \'display dialog "Task Completed" with title "OpenACI Agent" buttons "OK" default button "OK"\'')
+                elif platform.system() == 'Linux':
+                    os.system(f'zenity --info --title="OpenACI Agent" --text="Task Completed" --width=200 --height=100')
+                break 
+            
+            if 'next' in code[0].lower():
+                continue
+
+            if 'wait' in code[0].lower():
+                import time 
+                time.sleep(5)
+                continue
+
+            else:
+                exec(code[0])
+                import time 
+                time.sleep(1.)
