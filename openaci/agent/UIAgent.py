@@ -164,7 +164,6 @@ class IDBasedGroundingUIAgent:
             self.reflection_agent.add_message(reflection)
 
             logger.info("REFLECTION: %s", reflection)
-            print("REFLECTION: ", reflection)
 
         # Plan Generation
         if reflection:
