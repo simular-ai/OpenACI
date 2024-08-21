@@ -109,7 +109,6 @@ def run(instruction: str):
 
         info, code = agent.predict(instruction=instruction, obs=obs)
         
-        print(info)
         print(code)
 
         if 'done' in code[0].lower() or 'fail' in code[0].lower():

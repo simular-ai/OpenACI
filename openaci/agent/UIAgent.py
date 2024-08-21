@@ -180,6 +180,7 @@ class IDBasedGroundingUIAgent:
         plan = self.call_llm(self.planning_agent)
         self.planner_history.append(plan)
         logger.info("PLAN: %s", plan)
+        print("PLAN: ", plan)
 
         self.planning_agent.add_message(plan)
 

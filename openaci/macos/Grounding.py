@@ -26,28 +26,8 @@ from ApplicationServices import (
     kAXValueCGSizeType,
 )
 
-class UIElement(object):
-    def __init__(self, ref=None):
-        self.ref = ref
 
-    def getAttributeNames(self):
-        error_code, attributeNames = AXUIElementCopyAttributeNames(
-            self.ref, None)
-        return list(attributeNames)
-
-    def attribute(self, key: str):
-        error, value = AXUIElementCopyAttributeValue(self.ref, key, None)
-        return value
-
-    def children(self):
-        return self.attribute('AXChildren')
-
-    def systemWideElement():
-        ref = AXUIElementCreateSystemWide()
-        return UIElement(ref)
-
-    def __repr__(self):
-        return "UIElement%s" % (self.ref)
+from macos.UIElement import UIElement
 
 def list_apps_in_directories(directories):
     apps = []
@@ -77,34 +57,6 @@ class GroundingAgent:
 
         self.nodes, self.linearized_accessibility_tree = self.linearize_and_annotate_tree(
             self.input_tree, self.screenshot)
-
-    def get_coordinates(self, position):
-        pos_parts = position.__repr__().split().copy()
-        # Find the parts containing 'x:' and 'y:'
-        for part in pos_parts:
-            if part.startswith('x:'):
-                x_part = part
-            if part.startswith('y:'):
-                y_part = part
-        # Extract the numerical values after 'x:' and 'y:'
-        x = float(x_part.split(':')[1])
-        y = float(y_part.split(':')[1])
-        return x, y
-
-    def get_sizes(self, size):
-        size_parts = size.__repr__().split().copy()
-
-        # Find the parts containing 'Width:' and 'Height:'
-        for part in size_parts:
-            if part.startswith('w:'):
-                width_part = part
-            if part.startswith('h:'):
-                height_part = part
-
-        # Extract the numerical values after 'Width:' and 'Height:'
-        w = float(width_part.split(':')[1])
-        h = float(height_part.split(':')[1])
-        return w, h
 
     def preserve_nodes(self, tree, exclude_roles=None):
         if exclude_roles is None:
@@ -140,7 +92,11 @@ class GroundingAgent:
                         h = float(height_part.split(':')[1])
         
                         if x >= 0 and y >= 0 and w > 0 and h > 0:
-                            preserved_nodes.append(element)
+                            preserved_nodes.append({'position': (x, y), 
+                                                    'size' : (w, h), 
+                                                    'title': str(element.attribute('AXTitle')), 
+                                                    'text': str(element.attribute('AXDescription')) or str(element.attribute('AXValue')),
+                                                    'role': str(element.attribute('AXRole'))})
             
             children = element.children()
             if children:
@@ -150,10 +106,6 @@ class GroundingAgent:
 
         # Start traversing from the given element
         traverse_and_preserve(tree)
-
-        # Sanity Check
-        for node in preserved_nodes:
-            assert node.attribute('AXPosition') is not None
 
         return preserved_nodes
 
@@ -166,9 +118,9 @@ class GroundingAgent:
             "id\trole\ttitle\ttext"]
 
         for idx, node in enumerate(preserved_nodes):
-            title = node.attribute('AXTitle')
-            text = node.attribute('AXDescription') or node.attribute('AXValue')
-            role = node.attribute('AXRole')
+            title = node['title']
+            text = node['text']
+            role = node['role']
             linearized_accessibility_tree.append(
                 "{:}\t{:}\t{:}\t{:}".format(
                     idx,
@@ -178,17 +130,9 @@ class GroundingAgent:
                 )
             )
 
-        tree_bboxes = []
-        for node in preserved_nodes:
-            coordinates = self.get_coordinates(node.attribute('AXPosition'))
-            sizes = self.get_sizes(node.attribute('AXSize'))
-
-            tree_bboxes.append([coordinates[0], coordinates[1], coordinates[0] + sizes[0], coordinates[1] + sizes[1]])
-
         # Convert to string
         linearized_accessibility_tree = "\n".join(
             linearized_accessibility_tree)
-        print(linearized_accessibility_tree)
         return preserved_nodes, linearized_accessibility_tree
 
     def find_element(self, element_id):
@@ -209,9 +153,8 @@ class GroundingAgent:
         # fuzzy match the app name
         # closest_matches = difflib.get_close_matches(app_name + ".app", self.all_apps, n=1, cutoff=0.6) 
         if app_name in self.all_apps:
-            subprocess.run(["open", "-a", app_name], check=True)
             print(f"{app_name} has been opened successfully.")
-            return """NEXT"""
+            return f"""import subprocess; subprocess.run(["open", "-a", "{app_name}"], check=True)"""
         else:
             self.execution_feedback = "There is no application " + app_name + " installed on the system. Please replan and avoid this action."
             print(self.execution_feedback)
@@ -225,12 +168,13 @@ class GroundingAgent:
             click_type: the type of click to perform (left, right)
         '''
         node = self.find_element(element_id)
-        coordinates: Tuple[int, int] = self.get_coordinates(node.attribute('AXPosition'))
-        sizes: Tuple[int, int] = self.get_sizes(node.attribute('AXSize'))
+        coordinates: Tuple[int, int] = node['position']
+        sizes: Tuple[int, int] = node['size']
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
         y = coordinates[1] + sizes[1] // 2
+        print(f'coordinates of node {node}, are {x}, {y}')
 
         # Return pyautoguicode to click on the element
         return f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button="{click_type}")"""
@@ -241,8 +185,8 @@ class GroundingAgent:
             element: a short description of the element to click on
         '''
         node = self.find_element(element_id)
-        coordinates: Tuple[int, int] = self.get_coordinates(node.attribute('AXPosition'))
-        sizes: Tuple[int, int] = self.get_sizes(node.attribute('AXSize'))
+        coordinates: Tuple[int, int] = node['position']
+        sizes: Tuple[int, int] = node['size']
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
@@ -257,8 +201,8 @@ class GroundingAgent:
             element: a short description of the element to click on
         '''
         node = self.find_element(element_id)
-        coordinates: Tuple[int, int] = self.get_coordinates(node.attribute('AXPosition'))
-        sizes: Tuple[int, int] = self.get_sizes(node.attribute('AXSize'))
+        coordinates: Tuple[int, int] = node['position']
+        sizes: Tuple[int, int] = node['size']
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
@@ -302,8 +246,8 @@ class GroundingAgent:
         except:
             node = self.find_element(0)
         # print(node.attrib)
-        coordinates: Tuple[int, int] = self.get_coordinates(node.attribute('AXPosition'))
-        sizes: Tuple[int, int] = self.get_sizes(node.attribute('AXSize'))
+        coordinates: Tuple[int, int] = node['position']
+        sizes: Tuple[int, int] = node['size']
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
@@ -326,8 +270,8 @@ class GroundingAgent:
         except:
             node = self.find_element(0)
         # print(node.attrib)
-        coordinates: Tuple[int, int] = self.get_coordinates(node.attribute('AXPosition'))
-        sizes: Tuple[int, int] = self.get_sizes(node.attribute('AXSize'))
+        coordinates: Tuple[int, int] = node['position']
+        sizes: Tuple[int, int] = node['size']
 
         # Calculate the center of the element
         x = coordinates[0] + sizes[0] // 2
@@ -347,11 +291,11 @@ class GroundingAgent:
         '''
         node1 = self.find_element(element1_id)
         node2 = self.find_element(element2_id)
-        coordinates1: Tuple[int, int] = self.get_coordinates(node1.attribute('AXPosition'))
-        sizes1: Tuple[int, int] = self.get_sizes(node2.attribute('AXSize'))
+        coordinates1: Tuple[int, int] = node1['position']
+        sizes1: Tuple[int, int] = node1['size']
 
-        coordinates2: Tuple[int, int] = self.get_coordinates(node2.attribute('AXPosition'))
-        sizes2: Tuple[int, int] = self.get_sizes(node2.attribute('AXSize'))
+        coordinates2: Tuple[int, int] = node2['position']
+        sizes2: Tuple[int, int] = node2['size']
         
         # Calculate the center of the element
         x1 = coordinates1[0] + sizes1[0] // 2
