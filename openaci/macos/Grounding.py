@@ -29,6 +29,10 @@ from ApplicationServices import (
 
 from macos.UIElement import UIElement
 
+def agent_action(func):
+    func.is_agent_action = True
+    return func
+
 def list_apps_in_directories(directories):
     apps = []
     for directory in directories:
@@ -145,10 +149,11 @@ class GroundingAgent:
         return selected_element
 
     # TODO: this is still MACOS specific code
+    @agent_action
     def open_app(self, app_name):
         '''Open an application
             Args:
-                app_name:str, the name of the application to open from the following list of available applications in the system: AVAILABLE_APPS
+                app_name:str, the name of the application to open from the list of available applications in the system: AVAILABLE_APPS
         '''
         # fuzzy match the app name
         # closest_matches = difflib.get_close_matches(app_name + ".app", self.all_apps, n=1, cutoff=0.6) 
@@ -160,12 +165,11 @@ class GroundingAgent:
             print(self.execution_feedback)
             return """WAIT"""
 
-    def click(self, element_id, num_clicks=1, click_type="left"):
+    @agent_action
+    def click(self, element_id:int):
         '''Click on the element
         Args:
-            element: a short description of the element to click on
-            num_clicks: the number of clicks to perform
-            click_type: the type of click to perform (left, right)
+            element_id:int, ID of the element to click on
         '''
         node = self.find_element(element_id)
         coordinates: Tuple[int, int] = node['position']
@@ -177,12 +181,13 @@ class GroundingAgent:
         print(f'coordinates of node {node}, are {x}, {y}')
 
         # Return pyautoguicode to click on the element
-        return f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button="{click_type}")"""
+        return f"""import pyautogui; pyautogui.click({x}, {y}, clicks=1, button="left")"""
 
-    def double_click(self, element_id):
+    @agent_action
+    def double_click(self, element_id:int):
         '''Double click on the element
         Args:
-            element: a short description of the element to click on
+            element_id:int, ID of the element to click on
         '''
         node = self.find_element(element_id)
         coordinates: Tuple[int, int] = node['position']
@@ -195,10 +200,11 @@ class GroundingAgent:
         # Return pyautoguicode to click on the element
         return f"""import pyautogui; pyautogui.click({x}, {y}, clicks=2, button="left")"""
 
-    def right_click(self, element_id):
+    @agent_action
+    def right_click(self, element_id:int):
         '''Right click on the element
         Args:
-            element: a short description of the element to click on
+            element_id:int, ID of the element to click on
         '''
         node = self.find_element(element_id)
         coordinates: Tuple[int, int] = node['position']
@@ -211,35 +217,23 @@ class GroundingAgent:
         # Return pyautoguicode to click on the element
         return f"""import pyautogui; pyautogui.click({x}, {y}, button="right")"""
 
-    def click_at_coordinates(self, x, y, num_clicks, click_type="left"):
+    @agent_action
+    def click_at_coordinates(self, x:int, y:int, num_clicks:int, click_type:str="left"):
         '''Click on the element at the specified coordinates. Only use if the required element does not exist in the accessibility tree.
         Args:
-            x: the x-coordinate of the element to click on
-            y: the y-coordinate of the element to click on
-            num_clicks: the number of clicks to perform
-            click_type: the type of click to perform (left, right)
+            x:int the x-coordinate of the element to click on
+            y:int the y-coordinate of the element to click on
+            num_clicks:int the number of clicks to perform
+            click_type:str the type of click to perform ("left", "right")
         '''
         return f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button="{click_type}")"""
 
-    def switch_applications(self, app_name):
-        '''Switch to a different application
-        Args:
-            app_name: the name of the application to switch to from the provided list of applications
-        '''
-        return self.app_setup_code.replace('APP_NAME', app_name)
-
-    def make_full_screen(self, app_name):
-        '''Make the application full screen
-        Args:
-            app_name: the name of the application to make full screen
-        '''
-        return self.app_setup_code.replace('APP_NAME', app_name)
-
-    def type(self, element_id, text, append: bool = True):
+    @agent_action
+    def type(self, element_id:int, text:str, append: bool = True):
         '''Type text into the element
         Args:
-            element: a short description of the element to type into
-            text: the text to type into the element
+            element_id:int, ID of the element to click on
+            text:str the text to type into the element
         '''
         try:
             node = self.find_element(element_id)
@@ -259,11 +253,12 @@ class GroundingAgent:
         else:
             return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("backspace"); pyautogui.typewrite("{text}")"""
 
-    def type_and_enter(self, element_id, text, append: bool = True):
+    @agent_action
+    def type_and_enter(self, element_id:int, text:str, append: bool = True):
         '''Type text into the element
         Args:
-            element: a short description of the element to type into
-            text: the text to type into the element
+            element_id:int, ID of the element to click on
+            text:str the text to type into the element
         '''
         try:
             node = self.find_element(element_id)
@@ -283,11 +278,12 @@ class GroundingAgent:
         else:
             return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
 
-    def drag_and_drop(self, element1_id, element2_id):
+    @agent_action
+    def drag_and_drop(self, element1_id:int, element2_id:int):
         '''Drag element1 and drop it on element2
         Args:
-            element1: a short description of the element to drag
-            element2: a short description of the element to drop on
+            element1_id: ID of the element to click on of the element to drag
+            element2_id: ID of the element to click on of the element to drop on
         '''
         node1 = self.find_element(element1_id)
         node2 = self.find_element(element2_id)
@@ -307,25 +303,44 @@ class GroundingAgent:
         # Return pyautoguicode to drag and drop the elements
         return f"import pyautogui; pyautogui.moveTo({x1}, {y1}); pyautogui.dragTo({x2}, {y2})"
 
-    def scroll(self, clicks):
+    @agent_action
+    def scroll_in_element(self, element_id:int,clicks:int):
         '''Scroll the element in the specified direction
         Args:
+            element_id: ID of the element to scroll in
             clicks: the number of clicks to scroll can be positive or negative
         '''
-        return f"import pyautogui; pyautogui.scroll({clicks})"
+        node = self.find_element(element_id)
+        coordinates: Tuple[int, int] = node['position']
+        sizes: Tuple[int, int] = node['size']
 
-    def hotkey(self, keys):
+        # Calculate the center of the element
+        x = coordinates[0] + sizes[0] // 2
+        y = coordinates[1] + sizes[1] // 2
+
+        # Return pyautoguicode to scroll the element
+        return f"import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.scroll({clicks})"
+
+    @agent_action
+    def hotkey(self, keys:List[str]):
         '''Press a hotkey combination
         Args:
-            keys: the keys to press in combination in a list format (e.g. ['command', 'c'])
+            keys:List[str] the keys to press in combination in a list format (e.g. ['command', 'c'])
         '''
         # add quotes around the keys
         keys = [f"'{key}'" for key in keys]
 
         return f"import pyautogui; pyautogui.hotkey({', '.join(keys)}, interval=1)"
 
-    def wait(self, time):
-        return """WAIT"""
+    @agent_action
+    def wait(self, time:float):
+        '''Wait for the specified amount of time
+        Args:
+            time:float the amount of time to wait in seconds
+        '''
+        return f"""import time; time.sleep({time})"""
 
+    @agent_action
     def done(self):
+        '''Indicate that the task is complete'''
         return """DONE"""
