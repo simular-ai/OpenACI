@@ -169,4 +169,5 @@ icons/*
 
 .DS_Store
 agentenv/
-openaci/user_data/
+openaci/user_data
+

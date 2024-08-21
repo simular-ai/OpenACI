@@ -102,8 +102,7 @@ class IDBasedGroundingUIAgent:
         self.feedbacks = []
         self.reflections = []
 
-        self.planning_module_system_prompt = PROCEDURAL_MEMORY.PLANNING_AGENT_PROMPT
-
+        self.planning_module_system_prompt = PROCEDURAL_MEMORY.construct_procedural_memory(GroundingAgent)
         self.reflection_module_system_prompt = PROCEDURAL_MEMORY.REFLECTION_ON_TRAJECTORY
 
         self.turn_count = None
@@ -170,9 +169,6 @@ class IDBasedGroundingUIAgent:
             self.reflection_agent.add_message(reflection)
 
             logger.info("REFLECTION: %s", reflection)
-            print("REFLECTION: ", reflection)
-        
-        planning_agent_message = ""
 
         # if a reflection is generated, add it to the planning agent message
         if reflection:
