@@ -1,4 +1,6 @@
 import platform 
+import textwrap
+import inspect
 
 if platform.system() == 'Darwin':
     current_os = 'MacOS'
@@ -94,6 +96,53 @@ class PROCEDURAL_MEMORY:
     4. Please only use the available methods provided above to interact with the UI. 
     5. If you think the task is already completed, you can return `agent.done()`.
     """
+
+    @staticmethod
+    def construct_procedural_memory(agent_class):
+        procedural_memory = textwrap.dedent(f"""\
+        You are an expert in graphical user interfaces and Python code. Your task is to complete the following: TASK_DESCRIPTION. You are working in {current_os}.
+        You are provided with:
+        1. A simplified accessibility tree of the UI at the current time step.
+        2. The history of your previous interactions with the UI.
+        3. Access to the following class and methods to interact with the UI:
+        class Agent:
+        """)
+        
+        for attr_name in dir(agent_class):
+            attr = getattr(agent_class, attr_name)
+            if callable(attr) and hasattr(attr, 'is_agent_action'):
+                # Use inspect to get the full function signature
+                signature = inspect.signature(attr)
+                procedural_memory += f"""
+    def {attr_name}{signature}:
+    '''{attr.__doc__}'''
+        """
+        
+        procedural_memory += textwrap.dedent("""
+        Your response should be formatted like this: 
+        (Previous action verification)
+        Carefully analyze based on the accessibility tree if the previous action was successful. If the previous action was not successful, provide a reason for the failure. 
+
+        (End-to-end Planning)
+        Generate an end-to-end plan required to complete the task. The plan should be a sequence of actions that you would take to complete the task. Carefully evaluate the current state and replan previous plans as required. Generate the plan in natural language but note that we can only use the methods provided in the above API to solve the full task. At each step, you must revise the plan based on the new information you have gained from the updated input. Do not preserve the old plan. Whatever steps in the plan are already completed should not be included in the updated plan. 
+
+        (Next Action)
+        Based on the current accessibility tree and the history of your previous interaction with the UI, and the plan you generated, decide on the next action in natural language. 
+
+        (Grounded Action)
+        Translate the next action into code using the provided API methods. Format the code like this:
+        ```python
+        agent.click(123, 1, "left")
+        ```
+        Note for the code:
+        1. Only perform one action at a time. 
+        2. Do not put anything other than python code in the block. 
+        3. Only return one code block every time. There must be a single line of code in the code block. 
+        4. Please only use the available methods provided above to interact with the UI. 
+        5. If you think the task is already completed, you can return `agent.done()`.
+        """)
+        return procedural_memory.strip() 
+        
 
     REFLECTION_ON_TRAJECTORY = """
     You are a reflection agent designed to assist in task execution by analyzing a trajectory of task execution until this time step and providing feedback for the next step prediction. 
