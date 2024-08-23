@@ -249,9 +249,9 @@ class GroundingAgent:
 
         # Return pyautoguicode to type into the element
         if append:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.typewrite("{text}")"""
+            return f"""import pyautogui; pyautogui.click({x}, {y}); time.sleep(0.5); pyautogui.typewrite('''{text}''')"""
         else:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("backspace"); pyautogui.typewrite("{text}")"""
+            return f"""import pyautogui; pyautogui.click({x}, {y}); time.sleep(0.5); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("backspace"); pyautogui.typewrite('''{text}''')"""
 
     @agent_action
     def type_and_enter(self, element_id:int, text:str, append: bool = True):
@@ -274,9 +274,9 @@ class GroundingAgent:
 
         # Return pyautoguicode to type into the element
         if append:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
+            return f"""import pyautogui; pyautogui.click({x}, {y}); time.sleep(0.5); pyautogui.typewrite('''{text}'''); pyautogui.press("enter")"""
         else:
-            return f"""import pyautogui; pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
+            return f"""import pyautogui; pyautogui.click({x}, {y}); time.sleep(0.5); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite('''{text}'''); pyautogui.press("enter")"""
 
     @agent_action
     def drag_and_drop(self, element1_id:int, element2_id:int):

@@ -24,6 +24,21 @@ logger = logging.getLogger("openaci.agent")
 # Get the directory of the current script
 working_dir = os.path.dirname(os.path.abspath(__file__))
 
+def sanitize_code(code):
+    # This pattern captures the outermost double-quoted text
+    pattern = r'(".*?")'
+    # Find all matches in the text
+    matches = re.findall(pattern, code, flags=re.DOTALL)
+    if matches:
+        # Replace the first occurrence only
+        first_match = matches[0]
+        code = code.replace(first_match, f'"""{first_match[1:-1]}"""', 1)
+    
+    return code
+    
+
+    
+
 def parse_single_code_from_string(input_string):
     input_string = input_string.strip()
     if input_string.strip() in ['WAIT', 'DONE', 'FAIL']:
@@ -185,11 +200,13 @@ class IDBasedGroundingUIAgent:
 
         # Extract code block from the plan
         plan_code = parse_single_code_from_string(plan)
+        plan_code = sanitize_code(plan_code)
         exec_code = eval(plan_code)
 
         # If agent selects an element that was out of range, it should not be executed just send a WAIT command. 
         if agent.index_out_of_range_flag:
             plan_code = 'WAIT'
+            exec_code = eval('agent.wait(0.5)')
 
         info = {
             'plan': plan,
