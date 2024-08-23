@@ -26,6 +26,64 @@ from ApplicationServices import (
     kAXValueCGSizeType,
 )
 
+# def is_useful(element):
+#     # Tags to explicitly ignore
+#     ignore_tags = ['style', 'script', 'meta', 'link', 'head', 'title', 'noscript']
+
+#     # Early return if the element is in the ignore list
+#     if element.name in ignore_tags:
+#         return False
+
+#     # Interactive elements
+#     interactive_tags = ['button', 'a', 'input', 'select', 'textarea', 'label']
+    
+#     # Elements with meaningful content
+#     content_tags = ['h1', 'h2', 'h3', 'p', 'div', 'span', 'li']
+    
+#     # Check if the element is one of the interactive or content tags
+#     if element.name not in interactive_tags and element.name not in content_tags:
+#         return False
+    
+#     # Check for non-empty text or specific attributes
+#     if not (element.get_text(strip=True) or element.has_attr('id') or element.has_attr('name') or element.has_attr('role')):
+#         return False
+    
+#     # Check visibility (simplified)
+#     style = element.get('style', '')
+#     if 'display:none' in style or 'visibility:hidden' in style:
+#         return False
+    
+#     # If it passes all checks, it's considered useful
+#     return True
+
+# def filter_useful_elements(soup):
+#     return [element for element in soup.find_all() if is_useful(element)]
+
+# def linearize_and_annotate_dom(soup):
+#     # Headers for the linearized tree
+#     linearized_dom_tree = ["idx\ttag\tid\tclass\tlabel\ttext"]
+
+#     # Function to extract attributes and text content
+#     def extract_info(node, idx):
+#         tag = node.name or ""
+#         node_id = node.get('id', '')
+#         node_class = " ".join(node.get('class', []))
+#         text = node.get_text(strip=True) if node.get_text(strip=True) else ""
+#         label = node.get('aria-label', '')  
+
+#         return "{:}\t{:}\t{:}\t{:}\t{:}\t{:}".format(
+#             idx, tag, node_id, node_class, label, text
+#         )
+
+#     # Traverse the useful elements and linearize
+#     preserved_nodes = filter_useful_elements(soup)
+#     for idx, node in enumerate(preserved_nodes):
+#         linearized_dom_tree.append(extract_info(node, idx))
+
+#     # Convert to string
+#     linearized_dom_tree = "\n".join(linearized_dom_tree)
+    
+#     return preserved_nodes, linearized_dom_tree
 
 from macos.UIElement import UIElement
 
@@ -39,7 +97,7 @@ def list_apps_in_directories(directories):
 
 class GroundingAgent:
     def __init__(self, obs, top_app=None):
-        self.input_tree = obs['accessibility_tree']
+        self.page = obs['accessibility_tree']
         self.screenshot = obs['screenshot']
         self.active_apps = []
         self.top_app = top_app
@@ -48,92 +106,69 @@ class GroundingAgent:
         self.top_active_app = None
         self.execution_feedback = None
 
-        # Directories to search for applications in MacOS
-        directories_to_search = [
-            "/System/Applications",
-            "/Applications"
-        ]
-        self.all_apps = list_apps_in_directories(directories_to_search)
-
         self.nodes, self.linearized_accessibility_tree = self.linearize_and_annotate_tree(
-            self.input_tree, self.screenshot)
+            self.page, self.screenshot)
 
-    def preserve_nodes(self, tree, exclude_roles=None):
-        if exclude_roles is None:
-            exclude_roles = set()
-        
-        preserved_nodes = []
 
-        # Inner function to recursively traverse the accessibility tree
-        def traverse_and_preserve(element):
-            role = element.attribute('AXRole')
+    def filter_useful_elements(self, soup):
+        def is_useful(element):
+            # Tags to explicitly ignore
+            ignore_tags = ['style', 'script', 'meta', 'link', 'head', 'title', 'noscript']
 
-            if role not in exclude_roles:
-                # TODO: get coordinate values directly from interface
-                position = element.attribute('AXPosition')
-                size = element.attribute('AXSize')
-                if position and size:
-                        pos_parts = position.__repr__().split().copy()
-                        # Find the parts containing 'x:' and 'y:'
-                        x_part = next(part for part in pos_parts if part.startswith('x:'))
-                        y_part = next(part for part in pos_parts if part.startswith('y:'))
-                        
-                        # Extract the numerical values after 'x:' and 'y:'
-                        x = float(x_part.split(':')[1])
-                        y = float(y_part.split(':')[1])
+            # Early return if the element is in the ignore list
+            if element.name in ignore_tags:
+                return False
 
-                        size_parts = size.__repr__().split().copy()
-                        # Find the parts containing 'Width:' and 'Height:'
-                        width_part = next(part for part in size_parts if part.startswith('w:'))
-                        height_part = next(part for part in size_parts if part.startswith('h:'))
-
-                        # Extract the numerical values after 'Width:' and 'Height:'
-                        w = float(width_part.split(':')[1])
-                        h = float(height_part.split(':')[1])
-        
-                        if x >= 0 and y >= 0 and w > 0 and h > 0:
-                            preserved_nodes.append({'position': (x, y), 
-                                                    'size' : (w, h), 
-                                                    'title': str(element.attribute('AXTitle')), 
-                                                    'text': str(element.attribute('AXDescription')) or str(element.attribute('AXValue')),
-                                                    'role': str(element.attribute('AXRole'))})
+            # Interactive elements
+            interactive_tags = ['button', 'a', 'input', 'select', 'textarea', 'label']
             
-            children = element.children()
-            if children:
-                for child_ref in children:
-                    child_element = UIElement(child_ref)
-                    traverse_and_preserve(child_element)
-
-        # Start traversing from the given element
-        traverse_and_preserve(tree)
-
-        return preserved_nodes
+            # Elements with meaningful content
+            content_tags = ['h1', 'h2', 'h3', 'p', 'div', 'span', 'li']
+            
+            # Check if the element is one of the interactive or content tags
+            if element.name not in interactive_tags and element.name not in content_tags:
+                return False
+            
+            # Check for non-empty text or specific attributes
+            if not (element.get_text(strip=True) or element.has_attr('id') or element.has_attr('name') or element.has_attr('role')):
+                return False
+            
+            # Check visibility (simplified)
+            style = element.get('style', '')
+            if 'display:none' in style or 'visibility:hidden' in style:
+                return False
+            
+            # If it passes all checks, it's considered useful
+            return True
+        return [element for element in soup.find_all() if is_useful(element)]
+        
 
     # TODO: chunk and shorten this function
-    def linearize_and_annotate_tree(self, accessibility_tree, screenshot, platform="macos", tag=False):
-        tree = (UIElement(accessibility_tree.attribute('AXFocusedApplication')))
-        preserved_nodes = self.preserve_nodes(tree).copy()
-        
-        linearized_accessibility_tree = [
-            "id\trole\ttitle\ttext"]
+    def linearize_and_annotate_dom(self, soup, screenshot):
+        # Headers for the linearized tree
+        linearized_dom_tree = ["idx\ttag\tid\tclass\tlabel\ttext"]
 
-        for idx, node in enumerate(preserved_nodes):
-            title = node['title']
-            text = node['text']
-            role = node['role']
-            linearized_accessibility_tree.append(
-                "{:}\t{:}\t{:}\t{:}".format(
-                    idx,
-                    role,
-                    title,
-                    text,
-                )
+        # Function to extract attributes and text content
+        def extract_info(node, idx):
+            tag = node.name or ""
+            node_id = node.get('id', '')
+            node_class = " ".join(node.get('class', []))
+            text = node.get_text(strip=True) if node.get_text(strip=True) else ""
+            label = node.get('aria-label', '')  
+
+            return "{:}\t{:}\t{:}\t{:}\t{:}\t{:}".format(
+                idx, tag, node_id, node_class, label, text
             )
 
+        # Traverse the useful elements and linearize
+        preserved_nodes = self.filter_useful_elements(soup)
+        for idx, node in enumerate(preserved_nodes):
+            linearized_dom_tree.append(extract_info(node, idx))
+
         # Convert to string
-        linearized_accessibility_tree = "\n".join(
-            linearized_accessibility_tree)
-        return preserved_nodes, linearized_accessibility_tree
+        linearized_dom_tree = "\n".join(linearized_dom_tree)
+        
+        return preserved_nodes, linearized_dom_tree
 
     def find_element(self, element_id):
         try:

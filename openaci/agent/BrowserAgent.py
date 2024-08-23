@@ -4,17 +4,8 @@ import xml.etree.ElementTree as ET
 from agent.ProceduralMemory import PROCEDURAL_MEMORY
 import platform 
 
-if platform.system() == 'Darwin':
-    from macos.Grounding import GroundingAgent
-    from macos.UIElement import UIElement
-elif platform.system() == 'Linux':
-    from ubuntu.Grounding import GroundingAgent
-    from ubuntu.UIElement import UIElement
-else:
-    raise NotImplementedError
-
-# from browser.DOMElement import DOMElement
-# from browser.Grounding import BrowserGroundingAgent
+from browser.UIElement import UIElement
+from browser.Grounding import BrowserGroundingAgent
 from agent.MultimodalAgent import LMMAgent
 
 import os 
@@ -170,7 +161,6 @@ class IDBasedGroundingUIAgent:
 
             logger.info("REFLECTION: %s", reflection)
 
-        planning_agent_message = ''
         # if a reflection is generated, add it to the planning agent message
         if reflection:
             planning_agent_message = "\nYou may use the reflection on the previous trajectory: " + reflection
