@@ -6,8 +6,10 @@ import platform
 
 if platform.system() == 'Darwin':
     from macos.Grounding import GroundingAgent
+    from macos.UIElement import UIElement
 elif platform.system() == 'Linux':
     from ubuntu.Grounding import GroundingAgent
+    from ubuntu.UIElement import UIElement
 else:
     raise NotImplementedError
 
@@ -18,6 +20,8 @@ from typing import Dict, List
 import logging
 import re 
 from typing import Dict, List
+import pyautogui
+import io
 
 logger = logging.getLogger("openaci.agent")
 
@@ -218,3 +222,43 @@ class IDBasedGroundingUIAgent:
         self.turn_count+=1
 
         return info, [exec_code]
+    
+    def run(self, instruction: str):
+        obs = {}
+        for _ in range(15):
+            obs['accessibility_tree'] = UIElement.systemWideElement()
+                
+            # Get screen shot using pyautogui.
+            # Take a screenshot
+            screenshot = pyautogui.screenshot()
+
+            # Save the screenshot to a BytesIO object
+            buffered = io.BytesIO()
+            screenshot.save(buffered, format="PNG")
+
+            # Get the byte value of the screenshot
+            screenshot_bytes = buffered.getvalue()
+            # Convert to base64 string.
+            obs['screenshot'] = screenshot_bytes 
+
+            info, code = self.predict(instruction=instruction, obs=obs)
+
+            if 'done' in code[0].lower() or 'fail' in code[0].lower():
+                if platform.system() == 'Darwin':
+                    os.system(f'osascript -e \'display dialog "Task Completed" with title "OpenACI Agent" buttons "OK" default button "OK"\'')
+                elif platform.system() == 'Linux':
+                    os.system(f'zenity --info --title="OpenACI Agent" --text="Task Completed" --width=200 --height=100')
+                break 
+            
+            if 'next' in code[0].lower():
+                continue
+
+            if 'wait' in code[0].lower():
+                import time 
+                time.sleep(5)
+                continue
+
+            else:
+                exec(code[0])
+                import time 
+                time.sleep(1.)
