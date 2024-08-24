@@ -70,73 +70,33 @@ logger.addHandler(sdebug_handler)
 
 platform_os = platform.system() 
 
-
-def run(instruction: str):
-    engine_params = {
-        "engine_type": "openai",
-        "model": "gpt-4o",
-    }
-
-    agent = IDBasedGroundingUIAgent(
-        engine_params,
-        platform="macos",
-        max_tokens=1500,
-        top_p=0.9,
-        temperature=0.5,
-        action_space="pyautogui",
-        observation_type="A11y-tree",
-        max_trajectory_length=3,
-        a11y_tree_max_tokens=10000,
-        enable_reflection=True,
-    )
-    agent.reset()
-    obs = {}
-    for _ in range(15):
-        obs['accessibility_tree'] = UIElement.systemWideElement()
- 
-        # Get screen shot using pyautogui.
-        # Take a screenshot
-        screenshot = pyautogui.screenshot()
-
-        # Save the screenshot to a BytesIO object
-        buffered = io.BytesIO()
-        screenshot.save(buffered, format="PNG")
-
-        # Get the byte value of the screenshot
-        screenshot_bytes = buffered.getvalue()
-        # Convert to base64 string.
-        obs['screenshot'] = screenshot_bytes
-
-        info, code = agent.predict(instruction=instruction, obs=obs)
-        
-        print(code)
-
-        if 'done' in code[0].lower() or 'fail' in code[0].lower():
-            if platform.system() == 'Darwin':
-                os.system(f'osascript -e \'display dialog "Task Completed" with title "OpenACI Agent" buttons "OK" default button "OK"\'')
-            elif platform.system() == 'Linux':
-                os.system(f'zenity --info --title="OpenACI Agent" --text="Task Completed" --width=200 --height=100')
-            break 
-        
-        if 'next' in code[0].lower():
-            continue
-
-        if 'wait' in code[0].lower():
-            import time 
-            time.sleep(5)
-            continue
-
-        else:
-            exec(code[0])
-            import time 
-            time.sleep(1.)
-
 def main():
     # Examples.
     while True:
         query = input("Query: ")
-        run(query)
-        break 
+        engine_params = {
+            "engine_type": "openai",
+            "model": "gpt-4o",
+        }
+        agent = IDBasedGroundingUIAgent(
+            engine_params,
+            platform=platform_os,
+            max_tokens=1500,
+            top_p=0.9,
+            temperature=0.5,
+            action_space="pyautogui",
+            observation_type="atree",
+            max_trajectory_length=3,
+            a11y_tree_max_tokens=10000,
+            enable_reflection=True,
+        )
+        agent.reset()
+        agent.run(instruction=query)
+        
+        # Ask user if they want to provide another query
+        response = input("Would you like to provide another query? (y/n): ")
+        if response.lower() != "y":
+            break
 
 
 if __name__ == '__main__':
