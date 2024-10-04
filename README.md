@@ -14,11 +14,8 @@ Using automation tools can be potentially dangerous if not used responsibly. Ple
 4. **System instability:** Depending on the complexity of the automated tasks, there is a risk of causing system instability or crashes. This can lead to loss of work or damage to the system. Use this code in controlled environments and be prepared to handle any unforeseen issues.
 5. **Legal implications:** Some actions performed through automation may violate the terms of service or laws of certain platforms or jurisdictions. Ensure that you comply with all applicable rules and regulations before running this code.
 
-## Initializing OCR and Retrieval From Web 
 
-To use RAG and OCR complete the below steps before running the run.py script
-
-### Using RAG with Perplexica API
+## Using RAG with Perplexica API
 
 #### Getting Started with Docker
 
@@ -53,24 +50,6 @@ To use RAG and OCR complete the below steps before running the run.py script
 **Note**: After the containers are built, you can start Perplexica directly from Docker without having to open a terminal.
 
 
-### Using OCR 
-
-Install fastapi and then run the ocr_server.py file code to use OCR-based bounding boxes. 
-
-```
-pip install fastapi
-cd ui_agent
-python ocr_server.py
-```
-
-In the terminal window where you will run the run.py file type the following lines:
-
-```
-export OCR_SERVER_ADDRESS=http://localhost:8000/ocr/
-```
-
-You can change the server address based on whatever address you use in the ui_agent/ocr_server.py file 
-
 ## Usage
 To use this experimental code, follow the steps below:
 
@@ -91,11 +70,25 @@ export OPENAI_API_KEY=<openai-api-key>
 ```shell
 pip install -e .
 ``` 
-5. Run the code using
+5. Install fastapi and then run the ocr_server.py file code to use OCR-based bounding boxes. 
+
+```
+pip install fastapi
+cd ui_agent
+python ocr_server.py
+```
+6. Before running the the agent, type the following lines in the terminal window to access the OCR server:
+
+```
+export OCR_SERVER_ADDRESS=http://localhost:8000/ocr/
+```
+You can change the server address based on whatever address you use in the ui_agent/ocr_server.py file 
+
+7. Run the code using
 ```shell
 python openaci/cli_app.py
 ```
-6. Write an instruction for the agent as query. You can interrupt the agent at any time with a keyboard interrupt (Ctrl+C) in the terminal to run it.
+8. Write an instruction for the agent as query. You can interrupt the agent at any time with a keyboard interrupt (Ctrl+C) in the terminal to run it.
 
 Please remember to review and modify the code according to your specific use case and requirements. It is highly recommended to thoroughly test the code in a controlled environment before using it in any production or critical systems.
 
