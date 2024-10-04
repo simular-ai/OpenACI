@@ -20,6 +20,9 @@ logger = logging.getLogger("openaci.agent")
 
 from ubuntu.UIElement import UIElement
 
+def agent_action(func):
+    func.is_agent_action = True
+    return func
 
 def list_apps_in_directories(directories):
     apps = []
@@ -88,7 +91,6 @@ class GroundingAgent:
 
         return preserved_nodes
 
-    # TODO: chunk and shorten this function
     def linearize_and_annotate_tree(self, accessibility_tree, screenshot, platform="macos", tag=False):
         tree = accessibility_tree
         preserved_nodes = self.preserve_nodes(tree, exclude_roles=['panel', 'window', 'filler', 'separator']).copy()
@@ -123,30 +125,22 @@ class GroundingAgent:
             selected_element = self.nodes[0]
             self.index_out_of_range_flag = True 
         return selected_element
-
-    # TODO: this is still MACOS specific code
-    def open_app(self, app_name):
-        '''Open an application
-            Args:
-                app_name:str, the name of the application to open from the following list of available applications in the system: AVAILABLE_APPS
-        '''
-        # fuzzy match the app name
-        # closest_matches = difflib.get_close_matches(app_name + ".app", self.all_apps, n=1, cutoff=0.6) 
-        if app_name in self.all_apps:
-            print(f"{app_name} has been opened successfully.")
-            return f"""import subprocess; subprocess.Popen(["{app_name}"])"""
-        else:
-            self.execution_feedback = "There is no application " + app_name + " installed on the system. Please replan and avoid this action."
-            print(self.execution_feedback)
-            return """WAIT"""
-
-    def click(self, element_id, num_clicks=1, click_type="left"):
-        '''Click on the element
+    
+    @agent_action
+    def click(
+        self,
+        element_id: int,
+        num_clicks: int = 1,
+        button_type: str = "left",
+        hold_keys: List = [],
+    ):
+        """Click on the element
         Args:
-            element: a short description of the element to click on
-            num_clicks: the number of clicks to perform
-            click_type: the type of click to perform (left, right)
-        '''
+            element_id:int, ID of the element to click on
+            num_clicks:int, number of times to click the element
+            button_type:str, which mouse button to press can be "left", "middle", or "right"
+            hold_keys:List, list of keys to hold while clicking
+        """
         node = self.find_element(element_id)
         coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
         sizes: Tuple[int, int] = node.component.getSize()
@@ -155,127 +149,109 @@ class GroundingAgent:
         x = coordinates[0] + sizes[0] // 2
         y = coordinates[1] + sizes[1] // 2
 
+        command = "import pyautogui; "
+
+        # TODO: specified duration?
+        for k in hold_keys:
+            command += f"pyautogui.keyDown({repr(k)}); "
+        command += f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button={repr(button_type)}); """
+        for k in hold_keys:
+            command += f"pyautogui.keyUp({repr(k)}); "
         # Return pyautoguicode to click on the element
-        return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}, clicks={num_clicks}, button="{click_type}")"""
+        return command
 
-    def double_click(self, element_id):
-        '''Double click on the element
+    @agent_action
+    def switch_applications(self, app_code):
+        """Switch to a different application that is already open
         Args:
-            element: a short description of the element to click on
-        '''
-        node = self.find_element(element_id)
-        coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getSize()
+            app_code:str the code name of the application to switch to from the provided list of open applications
+        """
+        return self.app_setup_code.replace("APP_NAME", app_code)
 
-        # Calculate the center of the element
-        x = coordinates[0] + sizes[0] // 2
-        y = coordinates[1] + sizes[1] // 2
-
-        # Return pyautoguicode to click on the element
-        return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}, clicks=2, button="left")"""
-
-    def right_click(self, element_id):
-        '''Right click on the element
+    @agent_action
+    def type(
+        self,
+        element_id: int = None,
+        text: str = '',
+        overwrite: bool = False,
+        enter: bool = False,
+    ):
+        """Type text into the element
         Args:
-            element: a short description of the element to click on
-        '''
-        node = self.find_element(element_id)
-        coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getSize()
-
-        # Calculate the center of the element
-        x = coordinates[0] + sizes[0] // 2
-        y = coordinates[1] + sizes[1] // 2
-
-        # Return pyautoguicode to click on the element
-        return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}, button="right")"""
-
-    def click_at_coordinates(self, x, y, num_clicks, click_type="left"):
-        '''Click on the element at the specified coordinates. Only use if the required element does not exist in the accessibility tree.
-        Args:
-            x: the x-coordinate of the element to click on
-            y: the y-coordinate of the element to click on
-            num_clicks: the number of clicks to perform
-            click_type: the type of click to perform (left, right)
-        '''
-        return f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button="{click_type}")"""
-
-    def switch_applications(self, app_name):
-        '''Switch to a different application
-        Args:
-            app_name: the name of the application to switch to from the provided list of applications
-        '''
-        return self.app_setup_code.replace('APP_NAME', app_name)
-
-    def make_full_screen(self, app_name):
-        '''Make the application full screen
-        Args:
-            app_name: the name of the application to make full screen
-        '''
-        return self.app_setup_code.replace('APP_NAME', app_name)
-
-    def type(self, element_id, text, append: bool = True):
-        '''Type text into the element
-        Args:
-            element: a short description of the element to type into
-            text: the text to type into the element
-        '''
+            element_id:int ID of the element to type into. If not provided, typing will start at the current cursor location.
+            text:str the text to type
+            overwrite:bool Assign it to True if the text should overwrite the existing text, otherwise assign it to False. Using this argument clears all text in an element.
+            enter:bool Assign it to True if the enter key should be pressed after typing the text, otherwise assign it to False.
+        """
         try:
-            node = self.find_element(element_id)
+            # Use the provided element_id or default to None
+            node = self.find_element(element_id) if element_id is not None else None
         except:
-            node = self.find_element(0)
-        # print(node.attrib)
-        coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getSize()
+            node = None
 
-        # Calculate the center of the element
-        x = coordinates[0] + sizes[0] // 2
-        y = coordinates[1] + sizes[1] // 2
+        if node is not None:
+            # If a node is found, retrieve its coordinates and size
+            coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
+            sizes: Tuple[int, int] = node.component.getSize()
 
-        # Return pyautoguicode to type into the element
-        if append:
-            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.typewrite("{text}")"""
+            # Calculate the center of the element
+            x = coordinates[0] + sizes[0] // 2
+            y = coordinates[1] + sizes[1] // 2
+
+            # Start typing at the center of the element
+            command = "import pyautogui; "
+            command += f"pyautogui.click({x}, {y}); "
+
+            if overwrite:
+                command += (
+                    f"pyautogui.hotkey('ctrl', 'a'); pyautogui.press('backspace'); "
+                )
+
+            command += f"pyautogui.write({repr(text)}); "
+
+            if enter:
+                command += "pyautogui.press('enter'); "
         else:
-            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite("{text}")"""
+            # If no element is found, start typing at the current cursor location
+            command = "import pyautogui; "
 
-    def type_and_enter(self, element_id, text, append: bool = True):
-        '''Type text into the element
+            if overwrite:
+                command += (
+                    f"pyautogui.hotkey('ctrl', 'a'); pyautogui.press('backspace'); "
+                )
+
+            command += f"pyautogui.write({repr(text)}); "
+
+            if enter:
+                command += "pyautogui.press('enter'); "
+
+        return command
+
+    @agent_action
+    def save_to_knowledge(self, text: List[str]):
+        """Save facts, elements, texts, etc. to a long-term knowledge bank for reuse during this task. Can be used for copy-pasting text, saving elements, etc.
         Args:
-            element: a short description of the element to type into
-            text: the text to type into the element
-        '''
-        try:
-            node = self.find_element(element_id)
-        except:
-            node = self.find_element(0)
-        # print(node.attrib)
-        coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
-        sizes: Tuple[int, int] = node.component.getSize()
+            text:List[str] the text to save to the knowledge
+        """
+        self.notes.extend(text)
+        return """WAIT"""
 
-        # Calculate the center of the element
-        x = coordinates[0] + sizes[0] // 2
-        y = coordinates[1] + sizes[1] // 2
-
-        # Return pyautoguicode to type into the element
-        if append:
-            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
-        else:
-            return f"""import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.click({x}, {y}); pyautogui.hotkey("ctrl", "a", interval=1); pyautogui.press("delete"); pyautogui.typewrite("{text}"); pyautogui.press("enter")"""
-
-    def drag_and_drop(self, element1_id, element2_id):
-        '''Drag element1 and drop it on element2
+    @agent_action
+    def drag_and_drop(self, drag_from_id: int, drop_on_id: int, hold_keys: List = []):
+        """Drag element1 and drop it on element2.
         Args:
-            element1: a short description of the element to drag
-            element2: a short description of the element to drop on
-        '''
-        node1 = self.find_element(element1_id)
-        node2 = self.find_element(element2_id)
+            drag_from_id:int ID of element to drag
+            drop_on_id:int ID of element to drop on
+            hold_keys:List list of keys to hold while dragging
+        """
+        node1 = self.find_element(drag_from_id)
+        node2 = self.find_element(drop_on_id)
         coordinates1: Tuple[int, int] = node1.component.getPosition(pyatspi.XY_SCREEN)
         sizes1: Tuple[int, int] = node1.component.getSize()
 
         coordinates2: Tuple[int, int] = node2.component.getPosition(pyatspi.XY_SCREEN)
         sizes2: Tuple[int, int] = node2.component.getSize()
-        
+
         # Calculate the center of the element
         x1 = coordinates1[0] + sizes1[0] // 2
         y1 = coordinates1[1] + sizes1[1] // 2
@@ -283,28 +259,85 @@ class GroundingAgent:
         x2 = coordinates2[0] + sizes2[0] // 2
         y2 = coordinates2[1] + sizes2[1] // 2
 
+        command = "import pyautogui; "
+
+        command += f"pyautogui.moveTo({x1}, {y1}); "
+        # TODO: specified duration?
+        for k in hold_keys:
+            command += f"pyautogui.keyDown({repr(k)}); "
+        command += f"pyautogui.dragTo({x2}, {y2}, duration=1.); pyautogui.mouseUp(); "
+        for k in hold_keys:
+            command += f"pyautogui.keyUp({repr(k)}); "
+
         # Return pyautoguicode to drag and drop the elements
-        return f"import pyautogui; pyautogui.moveTo({x1}, {y1}); pyautogui.dragTo({x2}, {y2})"
 
-    def scroll(self, clicks):
-        '''Scroll the element in the specified direction
-        Args:
-            clicks: the number of clicks to scroll can be positive or negative
-        '''
-        return f"import pyautogui; pyautogui.scroll({clicks})"
+        return command
 
-    def hotkey(self, keys):
-        '''Press a hotkey combination
+    @agent_action
+    def scroll(self, element_id: int, clicks: int):
+        """Scroll the element in the specified direction
         Args:
-            keys: the keys to press in combination in a list format (e.g. ['command', 'c'])
-        '''
+            element_id:int ID of the element to scroll in
+            clicks:int the number of clicks to scroll can be positive (up) or negative (down).
+        """
+        try:
+            node = self.find_element(element_id)
+        except:
+            node = self.find_element(0)
+        # print(node.attrib)
+        coordinates: Tuple[int, int] = node.component.getPosition(pyatspi.XY_SCREEN)
+        sizes: Tuple[int, int] = node.component.getSize()
+
+        # Calculate the center of the element
+        x = coordinates[0] + sizes[0] // 2
+        y = coordinates[1] + sizes[1] // 2
+        return (
+            f"import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.scroll({clicks})"
+        )
+
+    @agent_action
+    def hotkey(self, keys: List):
+        """Press a hotkey combination
+        Args:
+            keys:List the keys to press in combination in a list format (e.g. ['ctrl', 'c'])
+        """
         # add quotes around the keys
         keys = [f"'{key}'" for key in keys]
+        return f"import pyautogui; pyautogui.hotkey({', '.join(keys)})"
 
-        return f"import pyautogui; pyautogui.hotkey({', '.join(keys)}, interval=1)"
+    @agent_action
+    def hold_and_press(self, hold_keys: List, press_keys: List):
+        """Hold a list of keys and press a list of keys
+        Args:
+            hold_keys:List, list of keys to hold
+            press_keys:List, list of keys to press in a sequence
+        """
 
-    def wait(self, time):
-        return """WAIT"""
+        press_keys_str = "[" + ", ".join([f"'{key}'" for key in press_keys]) + "]"
+        command = "import pyautogui; "
+        for k in hold_keys:
+            command += f"pyautogui.keyDown({repr(k)}); "
+        command += f"pyautogui.press({press_keys_str}); "
+        for k in hold_keys:
+            command += f"pyautogui.keyUp({repr(k)}); "
 
+        return command
+
+    @agent_action
+    def wait(self, time: float):
+        """Wait for a specified amount of time
+        Args:
+            time:float the amount of time to wait in seconds
+        """
+        return f"""import time; time.sleep({time})"""
+
+    @agent_action
     def done(self):
+        """End the current task with a success"""
         return """DONE"""
+
+    @agent_action
+    def fail(self):
+        """End the current task with a failure"""
+        return """FAIL"""
+

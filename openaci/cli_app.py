@@ -26,7 +26,7 @@ if platform.system() == 'Darwin':
 elif platform.system() == 'Linux':
     from ubuntu.UIElement import UIElement
 
-from agent.UIAgent import IDBasedGroundingUIAgent
+from agent_s.GraphSearchAgent import GraphSearchAgent
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -78,7 +78,7 @@ def main():
             "engine_type": "openai",
             "model": "gpt-4o",
         }
-        agent = IDBasedGroundingUIAgent(
+        agent = GraphSearchAgent(
             engine_params,
             platform=platform_os,
             max_tokens=1500,
