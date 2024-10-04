@@ -324,7 +324,6 @@ class PROCEDURAL_MEMORY:
 
     RAG_AGENT = """
     Given a desktop computer task instruction, you are an agent which should provide useful information as requested, to help another agent follow the instruction and perform the task.
-    The domain of the desktop computer task is from [Ubuntu, VLC, LibreOffice, Chrome, Thunderbird, VS Code, GIMP].
     The task is: TASK_DESCRIPTION
     The simplified accessibility tree of the current computer UI is: ACCESSIBLITY_TREE
     """

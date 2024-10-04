@@ -276,7 +276,15 @@ class GroundingAgent:
             Args:
                 app_or_file_name:str, the name of the application or file to open 
         '''
-        return "import pyauotgui; pyautogui.hotkey('command', 'space'); pyautogui.typewrite({repr(app_name)}); pyautogui.press('enter')"
+        return f"import pyautogui; pyautogui.hotkey('command', 'space', interval=1); pyautogui.typewrite({repr(app_or_file_name)}); pyautogui.press('enter')"
+    
+    @agent_action
+    def switch_window(self, app_or_file_name):
+        '''Open an application
+            Args:
+                app_or_file_name:str, the name of the application or file to open 
+        '''
+        return f"import pyautogui; pyautogui.hotkey('command', 'space', interval=1); pyautogui.typewrite({repr(app_or_file_name)}); pyautogui.press('enter')"
 
     @agent_action
     def click(
@@ -348,7 +356,7 @@ class GroundingAgent:
 
             if overwrite:
                 command += (
-                    f"pyautogui.hotkey('cmd', 'a'); pyautogui.press('backspace'); "
+                    f"pyautogui.hotkey('cmd', 'a', interval=1); pyautogui.press('backspace'); "
                 )
 
             command += f"pyautogui.write({repr(text)}); "
@@ -361,7 +369,7 @@ class GroundingAgent:
 
             if overwrite:
                 command += (
-                    f"pyautogui.hotkey('cmd', 'a'); pyautogui.press('backspace'); "
+                    f"pyautogui.hotkey('cmd', 'a', interval=1); pyautogui.press('backspace'); "
                 )
 
             command += f"pyautogui.write({repr(text)}); "
@@ -446,7 +454,7 @@ class GroundingAgent:
         """
         # add quotes around the keys
         keys = [f"'{key}'" for key in keys]
-        return f"import pyautogui; pyautogui.hotkey({', '.join(keys)})"
+        return f"import pyautogui; pyautogui.hotkey({', '.join(keys)}, interval=1)"
 
     @agent_action
     def hold_and_press(self, hold_keys: List, press_keys: List):

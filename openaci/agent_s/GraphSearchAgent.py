@@ -181,7 +181,7 @@ class GraphSearchAgent:
             if self.pdate_reflection:
                 print(self.search_query)
                 try:
-                    reflection_path = "/Users/saaketagashe/Documents/agent_s_workspace/SluGUI-agent/ui_agent/kb/lifelong_learning_knowledge_base.json"
+                    reflection_path = os.path.join(working_dir, "kb", platform_name, "lifelong_learning_knowledge_base.json")
                     lifelong_learning_reflections = json.load(open(reflection_path))
                 except:
                     lifelong_learning_reflections = {}
@@ -210,7 +210,6 @@ class GraphSearchAgent:
                 subtask_key = subtask_traj.split("\n----------------------\n\nPlan:\n")[0]
                 try:
                     subtask_path = os.path.join(working_dir, "kb", platform_name, "subtask_experience_knowledge_base.json")
-                    "/Users/saaketagashe/Documents/agent_s_workspace/SluGUI-agent/ui_agent/kb/subtask_experience_knowledge_base.json"
                     kb = json.load(open(subtask_path))
                 except:
                     kb = {}
@@ -263,6 +262,9 @@ class GraphSearchAgent:
                 
                 self.update_narrative_memory(traj)
                 break 
+        
+            if _ == 3:
+                self.update_narrative_memory(traj)
             
             if 'next' in code[0].lower():
                 continue

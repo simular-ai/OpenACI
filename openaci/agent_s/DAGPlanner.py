@@ -17,12 +17,12 @@ import pickle
 import os
 from sklearn.metrics.pairwise import cosine_similarity
 from typing import Dict, List, Tuple
-from ui_agent.MultimodalAgent import LMMAgent
+from agent_s.MultimodalAgent import LMMAgent
 import logging
-from ui_agent.query_perplexica import query_to_perplexica
+from agent_s.query_perplexica import query_to_perplexica
 from collections import defaultdict
-from ui_agent.osworld_utils import Dag, Node
-from ui_agent.osworld_utils import call_llm_safe, calculate_tokens, parse_dag
+from agent_s.osworld_utils import Dag, Node
+from agent_s.osworld_utils import call_llm_safe, calculate_tokens, parse_dag
 
 logger = logging.getLogger("desktopenv.agent")
 

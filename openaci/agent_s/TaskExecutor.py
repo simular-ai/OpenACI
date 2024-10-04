@@ -1,19 +1,27 @@
-from ui_agent.ProceduralMemory import PROCEDURAL_MEMORY
-from ui_agent.GroundingAgent import GroundingAgent
-from ui_agent.MultimodalEngine import OpenAIEmbeddingEngine
+from agent_s.ProceduralMemory import PROCEDURAL_MEMORY
+import platform
+if platform.system() == 'Darwin':
+    platform_name = 'macos'
+    from macos.Grounding import GroundingAgent
+    from macos.UIElement import UIElement
+elif platform.system() == 'Linux':
+    from ubuntu.Grounding import GroundingAgent
+    from ubuntu.UIElement import UIElement
+    platform_name = 'ubuntu'
+from agent_s.MultimodalEngine import OpenAIEmbeddingEngine
 import json
 import numpy as np
 import pickle
 import os
 from sklearn.metrics.pairwise import cosine_similarity
 from typing import Dict, List, Tuple
-from ui_agent.MultimodalAgent import LMMAgent
-from ui_agent import osworld_utils
-from ui_agent.query_perplexica import query_to_perplexica
+from agent_s.MultimodalAgent import LMMAgent
+from agent_s import osworld_utils
+from agent_s.query_perplexica import query_to_perplexica
 import re
 import logging
 
-from ui_agent.osworld_utils import Node, calculate_tokens, call_llm_safe
+from agent_s.osworld_utils import Node, calculate_tokens, call_llm_safe
 
 logger = logging.getLogger("desktopenv.agent")
 working_dir = os.path.dirname(os.path.abspath(__file__))
