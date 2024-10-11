@@ -27,7 +27,8 @@ from ApplicationServices import (
 )
 
 
-from macos.UIElement import UIElement
+from openaci.macos.UIElement import UIElement
+
 
 def agent_action(func):
     func.is_agent_action = True
