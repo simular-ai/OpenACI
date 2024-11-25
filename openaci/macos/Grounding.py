@@ -21,6 +21,7 @@ import difflib
 
 
 from openaci.macos.UIElement import UIElement
+from openaci.macos.system import open_running_app
 
 from AppKit import NSWorkspace, NSRunningApplication
 
@@ -292,7 +293,8 @@ class GroundingAgent:
         else:
             self.execution_feedback = "There is no application " + app_name + " installed on the system. Please replan and avoid this action."
             print(self.execution_feedback)
-            return """WAIT"""
+            return open_running_app(app_name)
+            # return """WAIT"""
     
     @agent_action
     def switch_applications(self, app_or_file_name):

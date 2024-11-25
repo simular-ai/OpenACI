@@ -5,3 +5,6 @@ Pillow==10.1.0
 backoff==2.1.2
 pyqt6==6.3.1; sys_platform == 'darwin'
 pyobjc==8.5; sys_platform == 'darwin' 
+torchvision
+pyobjc-framework-ApplicationServices
+bs4
