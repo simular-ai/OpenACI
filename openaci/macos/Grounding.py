@@ -290,11 +290,13 @@ class GroundingAgent:
         if app_name in self.all_apps:
             print(f"{app_name} has been opened successfully.")
             return f"""import subprocess; subprocess.run(["open", "-a", "{app_name}"], check=True)"""
+        elif open_running_app(app_name):
+            print(f"{app_name} has been opened successfully.")
+            return """WAIT"""
         else:
             self.execution_feedback = "There is no application " + app_name + " installed on the system. Please replan and avoid this action."
             print(self.execution_feedback)
-            return open_running_app(app_name)
-            # return """WAIT"""
+            return """WAIT"""
     
     @agent_action
     def switch_applications(self, app_or_file_name):

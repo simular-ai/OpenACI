@@ -81,10 +81,10 @@ def open_url_in_chrome(url, reuse_tab=False, background=False):
             url
         ], check=True)
         print(f"Opened {url} in Chrome")
-        return "WAIT"
+        return True
     except subprocess.CalledProcessError:
         print(f"Failed to open {url} in Chrome")
-        return "WAIT"
+        return False
     
 
 def fetch_content_from_app(app_name):
