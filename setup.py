@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='openaci',
-    version='0.1.0',
+    version='0.1.1',
     description='Abstraction platform for developing open source GUI agents',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
@@ -15,6 +15,7 @@ setup(
         'pyautogui==0.9.54',
         'Pillow==10.1.0',
         'backoff==2.1.2',
+	'torchvision',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',

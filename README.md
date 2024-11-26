@@ -42,6 +42,17 @@ python openaci/cli_app.py
 
 Please remember to review and modify the code according to your specific use case and requirements. It is highly recommended to thoroughly test the code in a controlled environment before using it in any production or critical systems.
 
+### Mac OS
+To run OpenACI on macOS, we need xcode developer package.
+```
+xcode-select --install
+```
+
+Also install
+```
+pip install pyobjc-framework-ApplicationServices
+```
+
 ## Contributing
 Contributions to this experimental codebase are welcome. If you discover any issues, have suggestions, or would like to add new features, please open an issue or submit a pull request.
 

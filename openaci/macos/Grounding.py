@@ -21,6 +21,7 @@ import difflib
 
 
 from openaci.macos.UIElement import UIElement
+from openaci.macos.system import open_running_app
 
 from AppKit import NSWorkspace, NSRunningApplication
 
@@ -289,6 +290,9 @@ class GroundingAgent:
         if app_name in self.all_apps:
             print(f"{app_name} has been opened successfully.")
             return f"""import subprocess; subprocess.run(["open", "-a", "{app_name}"], check=True)"""
+        elif open_running_app(app_name):
+            print(f"{app_name} has been opened successfully.")
+            return """WAIT"""
         else:
             self.execution_feedback = "There is no application " + app_name + " installed on the system. Please replan and avoid this action."
             print(self.execution_feedback)
